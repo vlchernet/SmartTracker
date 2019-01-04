@@ -9,42 +9,36 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-// This is the code for your desktop app.
-// Press Ctrl+F5 (or go to Debug > Start Without Debugging) to run your app.
-
 namespace Tracking
 {
     public partial class Form1 : Form
     {
-        private Graphics g;
-        private Brush curbrush = new SolidBrush(Color.Green);
-        private Brush wbrush = new SolidBrush(SystemColors.Control);
-        private int size = 10;
+        //private Graphics g;
+        //private Brush curbrush = new SolidBrush(Color.Green);
+        //private Brush wipebrush = new SolidBrush(SystemColors.Control);
+        //private int size = 10;
+        private const int speed = 10;
 
         public Form1()
         {
             InitializeComponent();
-            g = Graphics.FromHwnd(this.Handle);
+            ThreadMaker.Speed = speed;
+            //g = Graphics.FromHwnd(this.Handle);
         }
 
         private void Form1_MouseClick(object sender, MouseEventArgs e)
         {
-            Color c;
-            if (ThreadMaker.Escape)
-                c = Color.Blue;
-            else
-                c = Color.Red;
-            ThreadMaker tm = new ThreadMaker(e.X, e.Y, c);
+            textBox1.Visible = false;
+            Color c = ThreadMaker.Escape ? Color.Blue : Color.Red;
+            ThreadMaker tm = new ThreadMaker(e.X, e.Y, 10, c);
             tm.ThreadLauncher();
         }
 
         private void Form1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             ThreadMaker.Escape = !ThreadMaker.Escape;
-            if (ThreadMaker.Escape)
-                ThreadMaker.Col = Color.Blue;
-            else
-                ThreadMaker.Col = Color.Red;
+            ThreadMaker.Col = ThreadMaker.Escape ? Color.Blue : Color.Red;
+            ThreadMaker.Speed = ThreadMaker.Escape ? -speed : speed;
         }
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
@@ -71,5 +65,11 @@ namespace Tracking
             ThreadMaker.Target = true;
             ThreadMaker.Col = ThreadMaker.Prevcol;
         }
+
+        private void helpToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            textBox1.Visible = true;
+        }
+
     }
 }

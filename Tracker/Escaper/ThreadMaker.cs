@@ -6,18 +6,19 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace Tracking
 {
     class ThreadMaker
     {
         private int x, y;
-        private int speed = 10;
-        private static int size = 10;
-        private Brush curbrush;
+        private static int speed;
+        private static int size;
+        private Brush drawbrush;
         private static Color col;
         private static Color prevcol;
-        private Brush wbrush = new SolidBrush(SystemColors.Control);
+        private Brush wipebrush = new SolidBrush(SystemColors.Control);
         private Graphics G { get; set; } = Graphics.FromHwnd(Form1.ActiveForm.Handle);
         public static int Tpx { get => tpx; set => tpx = value; }
         public static int Tpy { get => tpy; set => tpy = value; }
@@ -25,18 +26,24 @@ namespace Tracking
         public static bool Escape { get => escape; set => escape = value; }
         public static Color Col { get => col; set => col = value; }
         public static Color Prevcol { get => prevcol; set => prevcol = value; }
+        public static int Speed { get => speed; set => speed = value; }
+        public static int Size { get => size; set => size = value; }
 
         private static bool escape = false;
         private static bool target = false;
         private static int tpx;
         private static int tpy;
+        private int eps = 2;
+        private static DateTime dob;
 
-        public ThreadMaker(int x, int y, Color color)
+        public ThreadMaker(int x, int y, int size, Color color)
         {
             this.x = x;
             this.y = y;
             Col = color;
-            curbrush = new SolidBrush(color);
+            drawbrush = new SolidBrush(color);
+            Size = size;
+            dob = DateTime.Now;
         }
 
         public void ThreadLauncher()
@@ -58,15 +65,33 @@ namespace Tracking
                 {
                     angle = GetAngle();
                 }
-                speed = Escape ? -10 : 10;
-                G.FillEllipse(wbrush, x, y, size, size);
-                y = (int)(y + speed * Math.Cos(angle));
-                x = (int)(x + speed * Math.Sin(angle));
-                curbrush = new SolidBrush(Col);
-                G.FillEllipse(curbrush, x, y, size, size);
+                G.FillEllipse(wipebrush, x, y, Size, Size);
+                y = (int)(y + Speed * Math.Cos(angle));
+                x = (int)(x + Speed * Math.Sin(angle));
+                drawbrush = new SolidBrush(Col);
+                Hit kill = new Hit(() => ((Tpx - x) < eps) && ((Tpy - y) < eps));
+                Hit notRecent = new Hit(() => (DateTime.Now.Subtract(dob).TotalMilliseconds > 500));
+                if (kill.Invoke() && notRecent.Invoke())
+                {
+                    try
+                    {
+                        drawbrush = new SolidBrush(Color.Orange);
+                        G.FillEllipse(drawbrush, x, y, Size * 2, Size * 2);
+                        Thread.Sleep(100);
+                        G.FillEllipse(wipebrush, x, y, Size * 2, Size * 2);
+                        Thread.CurrentThread.Abort();
+                    }
+                    catch (ThreadAbortException tae)
+                    {
+                        Console.WriteLine(tae.Message + "Thread is dead!");
+                    }
+                }
+                G.FillEllipse(drawbrush, x, y, Size, Size);
                 Thread.Sleep(100);
             }
         }
+
+        public delegate bool Hit();
 
         private int Random()
         {
@@ -77,6 +102,11 @@ namespace Tracking
         private double GetAngle()
         {
             return Math.Atan2((Tpx - x), (Tpy - y));
+        }
+
+        private bool IsNearby(int eps)
+        {
+            return (Tpx - x) < eps && (Tpy - y) < eps;
         }
     }
 }
