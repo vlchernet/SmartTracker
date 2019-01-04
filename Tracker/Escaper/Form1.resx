@@ -122,6 +122,7 @@
   </metadata>
   <data name="textBox1.Text" xml:space="preserve">
     <value>Every single click on form creates new thread.
+There are 3 states: pursuit, escape and random.
 Double click to change behavior.
 Leave the form to get the the random behavior.
 Return to form to restore last behavior.

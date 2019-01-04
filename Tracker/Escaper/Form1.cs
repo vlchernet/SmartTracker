@@ -71,5 +71,9 @@ namespace Tracking
             textBox1.Visible = true;
         }
 
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
     }
 }
